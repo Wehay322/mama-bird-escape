@@ -6,7 +6,7 @@ saved.ownedSkins=Array.isArray(saved.ownedSkins)?saved.ownedSkins.filter(id=>win
 if(!saved.ownedSkins.includes('classic'))saved.ownedSkins.unshift('classic');
 if(!saved.ownedSkins.includes(saved.skin))saved.skin='classic';
 saved.musicVolume=Number.isFinite(saved.musicVolume)?Math.max(0,Math.min(1,saved.musicVolume)):.18;
-let state='menu',panel='menu',panelStack=[],elapsed=0,stage=1,lap=1,levelTime=0,runCoins=0,grace=3,spawnTimer=0,coinTimer=0,speed=0,invis=0,shield=0,cooldown=0,grapple=null,agents=[],coins=[],keys={},p={x:-480,y:460},velocity={x:0,y:0},last=0,previewSkin=saved.skin;
+let state='menu',panel='menu',panelStack=[],elapsed=0,stage=1,lap=1,levelTime=0,runCoins=0,grace=3,spawnTimer=0,coinTimer=0,speed=0,invis=0,shield=0,cooldown=0,grapple=null,agents=[],coins=[],keys={},p={x:-480,y:460},velocity={x:0,y:0},last=0,previewSkin=saved.skin,hookPointer=null,hoveredHookTarget=null;
 function persist(){try{localStorage.setItem('mellrun-v1',JSON.stringify(saved))}catch{}}
 const music=window.createMusicManager({element:$('bgMusic'),enabled:saved.musicEnabled,volume:saved.musicVolume,onChange:({enabled,volume})=>{saved.musicEnabled=enabled;saved.musicVolume=volume;persist();updateMusicUi()}});
 function updateMusicUi(){$('musicEnabled').checked=music.enabled;$('musicVolume').value=Math.round(music.volume*100);$('volumeValue').textContent=Math.round(music.volume*100)+'%'}
@@ -17,7 +17,7 @@ const trees=[];for(let i=0;i<155;i++){let x=random()*2300-1150,y=random()*2300-1
 const towers=[{x:-750,y:730},{x:750,y:-730},{x:-850,y:-120},{x:850,y:120},{x:-250,y:250},{x:250,y:-250},{x:-900,y:600},{x:900,y:-600}],anchors=[...trees,...towers];
 let stickInput={x:0,y:0};const stickControl=window.createVirtualStick({element:$('joystick'),thumb:$('stickThumb'),canMove:()=>state==='running',onMove:v=>stickInput=v});
 function movementInput(){const x=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),y=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);return x||y?{x,y}:stickInput}
-function resetInput(){keys={};stickControl.reset();velocity={x:0,y:0}}
+function resetInput(){keys={};stickControl.reset();velocity={x:0,y:0};clearHookHover()}
 const touchLayout=window.matchMedia('(max-width:760px), (pointer:coarse), (max-height:500px) and (max-width:1000px)');let lastUiState;
 function ui(){
  if(lastUiState!==state){document.body.dataset.gameState=state;lastUiState=state;requestAnimationFrame(()=>window.resize3D?.())}
@@ -55,8 +55,13 @@ function free(x,y,r=13){return Math.abs(x)<1120&&Math.abs(y)<1120&&!trees.some(t
 function move(a,dx,dy,r=13){if(free(a.x+dx,a.y,r))a.x+=dx;if(free(a.x,a.y+dy,r))a.y+=dy}
 function spawnCoin(){for(let n=0;n<100;n++){let x=random()*2100-1050,y=random()*2100-1050;if(free(x,y,20)){coins.push({x,y});return}}}
 function spawnAgent(){for(let n=0;n<100;n++){let angle=random()*Math.PI*2,x=p.x+Math.cos(angle)*480,y=p.y+Math.sin(angle)*480;if(free(x,y)){agents.push({x,y,phase:random()*6});return}}}
-function hook(target){if(state!=='running')return;if(!saved.hook){toast('Купи хук в магазине · 25 птенцов');return}if(cooldown>0)return;const input=movementInput();const aim=HOOK_RANGE/2;const near=target||anchors.filter(t=>Math.hypot(t.x-p.x,t.y-p.y)>75&&Math.hypot(t.x-p.x,t.y-p.y)<=HOOK_RANGE).sort((a,b)=>Math.hypot(a.x-p.x-input.x*aim,a.y-p.y-input.y*aim)-Math.hypot(b.x-p.x-input.x*aim,b.y-p.y-input.y*aim))[0];const d=near?Math.hypot(near.x-p.x,near.y-p.y):0;if(!near||d>HOOK_RANGE||d<75){toast('Нет цели в радиусе хука');return}grapple={x:near.x+(p.x-near.x)/d*65,y:near.y+(p.y-near.y)/d*65,target:near,launch:{...p},phase:'out',travel:0,duration:d/1050,tip:{...p},blocked:0};cooldown=HOOK_COOLDOWN;ui()}
-canvas.onclick=e=>{if(state!=='running'||!saved.hook)return;const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*canvas.width/r.width,y=(e.clientY-r.top)*canvas.height/r.height;const point=anchors.map(t=>({t,s:window.project3D(t.x,t.y,35)})).sort((a,b)=>Math.hypot(a.s.x-x,a.s.y-y)-Math.hypot(b.s.x-x,b.s.y-y))[0];if(point&&Math.hypot(point.s.x-x,point.s.y-y)<55)hook(point.t)};
+function canHookTarget(target){if(!target||state!=='running'||!saved.hook||cooldown>0)return false;const distance=Math.hypot(target.x-p.x,target.y-p.y);return distance>=75&&distance<=HOOK_RANGE}
+function clearHookHover(){hookPointer=null;hoveredHookTarget=null;canvas.style.cursor=''}
+function refreshHookHover(){const target=hookPointer&&state==='running'&&saved.hook&&cooldown<=0?window.pickHookAnchor?.(hookPointer.x,hookPointer.y):null;hoveredHookTarget=canHookTarget(target)?target:null;canvas.style.cursor=hoveredHookTarget?'crosshair':''}
+canvas.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;hookPointer={x:e.clientX,y:e.clientY};refreshHookHover()});
+canvas.addEventListener('pointerleave',clearHookHover);canvas.addEventListener('pointercancel',clearHookHover);
+function hook(target){if(state!=='running')return;if(!saved.hook){toast('Купи хук в магазине · 25 птенцов');return}if(cooldown>0)return;refreshHookHover();const input=movementInput();const aim=HOOK_RANGE/2;const near=target||hoveredHookTarget||anchors.filter(canHookTarget).sort((a,b)=>Math.hypot(a.x-p.x-input.x*aim,a.y-p.y-input.y*aim)-Math.hypot(b.x-p.x-input.x*aim,b.y-p.y-input.y*aim))[0];if(!canHookTarget(near)){toast('Нет цели в радиусе хука');return}const d=Math.hypot(near.x-p.x,near.y-p.y);grapple={x:near.x+(p.x-near.x)/d*65,y:near.y+(p.y-near.y)/d*65,target:near,launch:{...p},phase:'out',travel:0,duration:d/1050,tip:{...p},blocked:0};cooldown=HOOK_COOLDOWN;refreshHookHover();ui()}
+canvas.onclick=e=>{if(state!=='running'||!saved.hook)return;const target=window.pickHookAnchor?.(e.clientX,e.clientY);if(canHookTarget(target))hook(target)};
 function updateGrapple(dt){if(!grapple)return false;const g=grapple;g.travel+=dt;if(g.phase==='out'){const t=Math.min(1,g.travel/g.duration);g.tip.x=g.launch.x+(g.target.x-g.launch.x)*t;g.tip.y=g.launch.y+(g.target.y-g.launch.y)*t;if(t>=1){g.phase='pull';g.travel=0}return false}
  if(g.phase==='pull'){let d=Math.hypot(g.x-p.x,g.y-p.y);if(d<12||g.blocked>.35){g.phase='retract';g.travel=0;g.retractFrom={...g.tip};return false}let step=Math.min(d,750*dt),ox=p.x,oy=p.y;move(p,(g.x-p.x)/d*step,(g.y-p.y)/d*step);if(Math.hypot(p.x-ox,p.y-oy)<step*.15)g.blocked+=dt;else g.blocked=0;velocity={x:0,y:0};return true}
  const t=Math.min(1,g.travel/.22);g.tip.x=g.retractFrom.x+(p.x-g.retractFrom.x)*t;g.tip.y=g.retractFrom.y+(p.y-g.retractFrom.y)*t;if(t>=1)grapple=null;return false;
@@ -75,4 +80,4 @@ function update(dt){if(state!=='running')return;elapsed+=dt;levelTime+=dt;grace-
 }
 function adaptTouch(){resetInput();$('hint').textContent=touchLayout.matches?'Стик слева — движение. Хук и усиления справа. Магазин — корзина сверху.':'WASD / стрелки — движение · Пробел — хук · Q — щит · R — невидимость · Shift — скорость · Esc — пауза';window.resize3D?.()}
 touchLayout.addEventListener('change',adaptTouch);window.addEventListener('resize',()=>window.resize3D?.());adaptTouch();syncPanels();
-function frame(t){const dt=Math.min(.04,(t-last)/1000||0);last=t;update(dt);window.render3D({p,trees,towers,agents,coins,state,elapsed,invis,speed,shield,grace,grapple,stage,lap,skin:saved.skin,weather:window.getWeather(elapsed)},dt);if(panel==='skins'){previewRenderer??=window.createSkinPreview($('skinPreview'));previewRenderer.render(previewSkin,t/1000)}requestAnimationFrame(frame)}requestAnimationFrame(frame);
+function frame(t){const dt=Math.min(.04,(t-last)/1000||0);last=t;update(dt);refreshHookHover();window.render3D({p,trees,towers,agents,coins,state,elapsed,invis,speed,shield,grace,grapple,stage,lap,skin:saved.skin,weather:window.getWeather(elapsed),hookTarget:hoveredHookTarget},dt);if(panel==='skins'){previewRenderer??=window.createSkinPreview($('skinPreview'));previewRenderer.render(previewSkin,t/1000)}requestAnimationFrame(frame)}requestAnimationFrame(frame);
