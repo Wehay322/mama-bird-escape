@@ -1,0 +1,31 @@
+// The bottle boss has a modeled face, glass body, cap, label, arms and boots.
+window.createBottleBoss=({T,scene,mesh,mat})=>{
+ const root=new T.Group();scene.add(root);const body=new T.Group();body.position.y=40;root.add(body);
+ const glass=new T.MeshPhysicalMaterial({color:'#adbaac',transparent:true,opacity:.55,roughness:.18,metalness:.12,clearcoat:1,depthWrite:false});
+ const profile=[[0,0],[23,0],[29,5],[30,45],[28,63],[19,77],[10,83],[9,100]].map(p=>new T.Vector2(...p));
+ mesh(new T.LatheGeometry(profile,48),glass,0,0,0,body);
+ const faceSource=window.createMellHero({T,scene,mesh,mat,variant:'boss'}),head=faceSource.userData.head;faceSource.remove(head);scene.remove(faceSource);faceSource.traverse(o=>{if(o.isMesh){o.geometry.dispose();o.material.dispose()}});head.position.set(0,39,0);head.scale.set(.95,.9,.95);body.add(head);
+ mesh(new T.CylinderGeometry(10,10,13,32),mat('#c3c7c4',.25),0,105,0,body);mesh(new T.CylinderGeometry(10.5,10.5,10,32),mat('#293e61'),0,96,0,body);
+ for(let i=0;i<4;i++)mesh(new T.TorusGeometry(10,.45,6,32),mat('#7d8c8d'),0,101+i*2,0,body).rotation.x=Math.PI/2;
+ const c=document.createElement('canvas');c.width=512;c.height=256;const ctx=c.getContext('2d');ctx.fillStyle='#dfd4b9';ctx.fillRect(0,0,512,256);ctx.strokeStyle='#9f392f';ctx.lineWidth=12;ctx.strokeRect(8,8,496,240);ctx.textAlign='center';ctx.fillStyle='#284969';ctx.font='bold 72px sans-serif';ctx.fillText('ЧЕКУШКА',256,90);ctx.fillStyle='#aa3e32';ctx.font='bold 43px sans-serif';ctx.fillText('МИРОВАЯ',256,148);ctx.fillStyle='#284969';ctx.font='bold 58px sans-serif';ctx.fillText('№67',256,213);const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;
+ const label=mesh(new T.CylinderGeometry(30.8,30.8,34,48,1,true,-Math.PI/2,Math.PI),new T.MeshStandardMaterial({map:tex,roughness:.85,side:T.DoubleSide}),0,23,0,body);
+ const cloth=mat('#202720'),skin=mat('#c79780'),legs=[],arms=[];
+ for(const side of [-1,1]){const hip=new T.Group();hip.position.set(side*17,0,0);body.add(hip);mesh(new T.SphereGeometry(9,16,12),cloth,0,-9,0,hip);const knee=new T.Group();knee.position.y=-18;hip.add(knee);mesh(new T.CylinderGeometry(8,9,16,16),cloth,0,-8,0,knee);mesh(new T.BoxGeometry(20,9,26),mat('#242626',.4),0,-17,5,knee);legs.push({hip,knee});const shoulder=new T.Group();shoulder.position.set(side*30,55,0);body.add(shoulder);mesh(new T.CylinderGeometry(8,6,18,16),cloth,0,-8,0,shoulder);const elbow=new T.Group();elbow.position.y=-17;shoulder.add(elbow);mesh(new T.CylinderGeometry(4,4.8,17,12),skin,0,-8,0,elbow);mesh(new T.SphereGeometry(5,12,8),skin,0,-19,0,elbow);arms.push({shoulder,elbow})}
+ root.userData={body,head,legs,arms,kind:'boss'};root.scale.setScalar(1.48);return root;
+};
+window.createExpansionVisuals=({T,scene,mesh,mat})=>{
+ const guns={};const metal=mat('#657776',.32),black=mat('#263331',.42),wood=mat('#a57545',.55);
+ function box(w,h,d,m,x,y,z,g){return mesh(new T.BoxGeometry(w,h,d),m,x,y,z,g)}
+ for(const id of ['ak','deagle']){const g=new T.Group();scene.add(g);g.visible=false;guns[id]=g;if(id==='ak'){box(7,8,34,metal,0,0,5,g);box(7,7,20,wood,0,-1,-20,g);box(6,7,17,wood,0,0,22,g);box(3,3,22,metal,0,2,39,g);const magazine=box(6,17,9,black,0,-11,8,g);magazine.rotation.x=-.2;box(5,12,6,black,0,-9,-4,g);box(2,4,2,black,0,6,41,g)}else{box(7,7,25,metal,0,1,10,g);box(6,5,24,black,0,-3,8,g);const grip=box(6,14,8,black,0,-11,1,g);grip.rotation.x=.2;box(2,3,2,black,0,6,19,g)}mesh(new T.SphereGeometry(4,12,8),mat('#d0a183'),3,-6,0,g)}
+ const muzzle=mesh(new T.OctahedronGeometry(8),new T.MeshBasicMaterial({color:'#ffde8b'}));muzzle.visible=false;
+ const positions=new Float32Array(36),geo=new T.BufferGeometry();geo.setAttribute('position',new T.BufferAttribute(positions,3));const tracer=new T.LineSegments(geo,new T.LineBasicMaterial({color:'#ffdd8e',transparent:true,opacity:.8}));tracer.frustumCulled=false;scene.add(tracer);
+ const ring=mesh(new T.TorusGeometry(210,1.3,6,64),new T.MeshBasicMaterial({color:'#8befff',transparent:true,opacity:.3,depthWrite:false}));ring.rotation.x=Math.PI/2;ring.visible=false;ring.castShadow=ring.receiveShadow=false;
+ const sparks=Array.from({length:8},()=>{const o=mesh(new T.OctahedronGeometry(2),new T.MeshBasicMaterial({color:'#a4edff'}));o.visible=false;return o});
+ const warning=mesh(new T.RingGeometry(58,65,48),new T.MeshBasicMaterial({color:'#ff603d',side:T.DoubleSide,transparent:true,opacity:.8,depthWrite:false}));warning.rotation.x=-Math.PI/2;warning.visible=false;warning.castShadow=warning.receiveShadow=false;
+ return {render(data,hero){const playing=data.state==='running'||data.state==='paused',id=data.arsenal?.active;for(const [key,g] of Object.entries(guns)){g.visible=playing&&key===id;if(g.visible){hero.updateMatrixWorld(true);const y=data.skin==='classic'||data.skin==='miti'?38:60;g.position.copy(hero.localToWorld(new T.Vector3(19,y,14)));g.rotation.y=hero.rotation.y;g.position.add(new T.Vector3(0,0,-data.arsenal.flash*22).applyAxisAngle(new T.Vector3(0,1,0),hero.rotation.y));if(hero.userData.arms?.[1])hero.userData.arms[1].shoulder.rotation.x=-1.2}}
+  muzzle.visible=playing&&!!id&&data.arsenal.flash>0;if(muzzle.visible){const g=guns[id];muzzle.position.copy(g.localToWorld(new T.Vector3(0,2,id==='ak'?49:25)));muzzle.scale.setScalar(.7+data.arsenal.flash*5);muzzle.rotation.z=data.elapsed*20}
+  const shots=playing?(data.arsenal?.traces||[]):[];let n=0;for(const s of shots.slice(-6))for(const v of [s.x,48,s.y,s.endX,48,s.endY])positions[n++]=v;geo.setDrawRange(0,n/3);geo.attributes.position.needsUpdate=true;tracer.visible=n>0;
+  ring.visible=playing&&data.combat.magnet>0;ring.position.set(data.p.x,4,data.p.y);ring.material.opacity=.2+Math.sin(data.elapsed*8)*.08;for(let i=0;i<sparks.length;i++){const o=sparks[i];o.visible=ring.visible;if(o.visible){const a=data.elapsed*2+i*Math.PI/4,r=30+((data.elapsed*85+i*25)%170);o.position.set(data.p.x+Math.sin(a)*r,12,data.p.y+Math.cos(a)*r)}}
+  const boss=data.agents.find(a=>a.kind==='boss'&&a.attackWindup>0);warning.visible=playing&&!!boss;if(boss){warning.position.set(boss.x,4,boss.y);warning.material.opacity=.3+(1-boss.attackWindup/.9)*.6}
+ }};
+};

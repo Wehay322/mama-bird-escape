@@ -56,7 +56,7 @@ window.createGameSkin=({T,scene,mesh,mat,id='classic'})=>{
 };
 
 window.animateCharacter=(root,time,moving,dt=0)=>{
- const u=root.userData,phase=time*(u.kind==='agent'?11:10),stride=moving?1:0;
+ const u=root.userData,phase=time*(u.kind==='boss'?6:u.agentKind==='brute'?8:u.kind==='agent'?11:10),stride=moving?1:0;
  if(u.body){u.body.position.y=40+(moving?Math.abs(Math.sin(phase))*2.2:Math.sin(time*2)*.35);u.body.rotation.x=moving?.10:0;u.body.rotation.z=moving?Math.sin(phase)*.045:0;
   u.legs.forEach(({hip,knee},i)=>{let swing=phase+i*Math.PI;hip.rotation.x=Math.sin(swing)*.72*stride;knee.rotation.x=Math.max(0,-Math.sin(swing))*.95*stride+.08;});
   u.arms.forEach(({shoulder,elbow},i)=>{let swing=phase+i*Math.PI;shoulder.rotation.x=-Math.sin(swing)*.62*stride;shoulder.rotation.z=(i?-.10:.10);elbow.rotation.x=-.35-Math.max(0,Math.sin(swing))*.38*stride;});
