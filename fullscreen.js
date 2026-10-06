@@ -9,7 +9,7 @@ window.createFullscreenControl=({arena,buttons,onResize,onReset,onMessage})=>{
  function fallback(){expanded=true;arena.classList.add('screen-fallback');sync()}
  async function toggle(){if(busy)return;busy=true;try{
   if(expanded){if(nativeElement()){const exit=document.exitFullscreen||document.webkitExitFullscreen;await exit.call(document)}else{arena.classList.remove('screen-fallback');expanded=false}sync();previousFocus?.focus?.()}
-  else{previousFocus=document.activeElement;const request=arena.requestFullscreen||arena.webkitRequestFullscreen;if(request){try{await request.call(arena,{navigationUI:'hide'});sync()}catch{fallback();onMessage?.('Игра развёрнута на всё окно браузера')}}else fallback()}
+  else{previousFocus=document.activeElement;arena.classList.add('screen-fallback');expanded=true;sync();const request=arena.requestFullscreen||arena.webkitRequestFullscreen;if(request){try{await request.call(arena,{navigationUI:'hide'});arena.classList.remove('screen-fallback');sync()}catch{onMessage?.('Игра развёрнута на всё окно браузера')}}}
  }catch{onMessage?.('Не удалось переключить экран. Попробуй кнопку ещё раз.')}finally{busy=false}}
  for(const b of buttons)b.onclick=toggle;for(const e of ['fullscreenchange','webkitfullscreenchange'])document.addEventListener(e,sync);
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&arena.classList.contains('screen-fallback')){e.preventDefault();e.stopImmediatePropagation();toggle()}},true);
