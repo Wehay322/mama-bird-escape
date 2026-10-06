@@ -15,4 +15,4 @@ window.createFullscreenControl=({arena,buttons,onResize,onReset,onMessage})=>{
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&arena.classList.contains('screen-fallback')){e.preventDefault();e.stopImmediatePropagation();toggle()}},true);
  sync();return {toggle,get expanded(){return expanded}};
 };
-if(typeof navigator!=='undefined'&&(/OPR\//i.test(navigator.userAgent)||/Opera/i.test(navigator.userAgent))){const s=document.createElement('script');s.src='safe2d.js?v=opera-safe-15';document.head.appendChild(s)}
+if(typeof navigator!=='undefined'&&(/OPR\//i.test(navigator.userAgent)||/Opera/i.test(navigator.userAgent)||/opera-safe-15|safe2d/i.test(location.search))){const s=document.createElement('script');s.src='safe2d.js?v=opera-safe-15';document.head.appendChild(s)}
