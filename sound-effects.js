@@ -5,8 +5,8 @@ window.createSoundEffects=({volume=1,pickupElement})=>{
  function menu(){unlock();tone(540,760,.075,.018)}
  function purchase(){unlock();tone(1470,1280,.16,.022,0,'triangle');tone(2010,1700,.15,.017,.055,'sine');tone(2460,2100,.12,.011,.1,'triangle')}
  function step(){if(!context||!allowed||volume<=0||document.hidden)return;const t=context.currentTime,source=context.createBufferSource(),filter=context.createBiquadFilter(),gain=context.createGain();source.buffer=noise;source.playbackRate.value=.8+Math.random()*.3;filter.type='lowpass';filter.frequency.value=640;gain.gain.setValueAtTime(.033,t);gain.gain.exponentialRampToValueAtTime(.0001,t+.085);source.connect(filter);filter.connect(gain);gain.connect(master);source.start(t);source.stop(t+.1);source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect()}}
- function pickup(){if(!allowed||volume<=0||document.hidden||!pickupElement?.getAttribute('src'))return;pickupElement.volume=volume*.32;pickupElement.currentTime=0;pickupElement.play().catch(()=>{})}
- const api={unlock,menu,purchase,step,pickup,setVolume(value){volume=Math.max(0,Math.min(1,Number(value)||0));if(master)master.gain.value=volume;if(pickupElement){pickupElement.volume=volume*.32;if(volume===0)pickupElement.pause()}},get volume(){return volume}};
+ function pickup(){if(!allowed||volume<=0||document.hidden||!pickupElement?.getAttribute('src')||pickupElement.paused===false&&pickupElement.currentTime<.08)return;pickupElement.volume=volume*.14;pickupElement.currentTime=0;pickupElement.play().catch(()=>{})}
+ const api={unlock,menu,purchase,step,pickup,setVolume(value){volume=Math.max(0,Math.min(1,Number(value)||0));if(master)master.gain.value=volume;if(pickupElement){pickupElement.volume=volume*.14;if(volume===0)pickupElement.pause()}},get volume(){return volume}};
  document.addEventListener('pointerdown',unlock);document.addEventListener('keydown',unlock);document.addEventListener('visibilitychange',()=>{if(document.hidden){context?.suspend().catch(()=>{});pickupElement?.pause()}else if(allowed&&context)context.resume().catch(()=>{})});
  return api;
 };
