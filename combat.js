@@ -1,5 +1,5 @@
 window.SKILL_CATALOG=[
- {id:'magnet',name:'Магнит для птенцов',short:'МАГНИТ',price:100,cooldown:25,castTime:0,description:'5 секунд притягивает птенцов в радиусе 210. Откат — 25 секунд.'},
+ {id:'magnet',name:'Магнит для птенцов',short:'МАГНИТ',price:25,cooldown:25,castTime:0,description:'5 секунд притягивает птенцов в радиусе 210. Откат — 25 секунд.'},
  {id:'requiem',name:'Реквием душ',short:'РЕКВИЕМ',price:210,cooldown:50,castTime:1.67,description:'20 волн душ. До 75% радиуса — 100 урона, дальше — 75. Одно попадание за взрыв и страх.',icon:'souls'},
  {id:'aegis',name:'Aegis Hero 2',short:'AEGIS',price:100,cooldown:30,castTime:.75,description:'Затяжка, небольшое облако дыма и +75 HP. Здоровье не превышает 100.',image:'assets/aegis-hero2.png'},
  {id:'refresher',name:'Рефрешер',short:'РЕФРЕШЕР',price:300,cooldown:100,castTime:0,description:'Обнуляет откаты других навыков и предметов, включая хук. Собственный откат — 100 секунд.'}
