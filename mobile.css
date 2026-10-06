@@ -1,0 +1,45 @@
+.mobile-only,.stick-wrap{display:none}
+#game{touch-action:none}
+@media (max-width:760px),(pointer:coarse),(max-height:500px) and (max-width:1000px){
+ html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
+ body{height:100dvh}
+ header{height:calc(52px + env(safe-area-inset-top));padding:env(safe-area-inset-top) max(12px,env(safe-area-inset-right)) 0 max(12px,env(safe-area-inset-left));gap:10px}
+ .logo{font-size:14px;white-space:nowrap}.logo small{font-size:8px;letter-spacing:2px;margin-top:4px}.top{display:none}
+ header button{min-height:40px;padding:8px;font-size:9px;flex-shrink:0}
+ main{padding:0;max-width:none}.heading,footer,.notes,.disclaimer{display:none}
+ .arena{width:100%;height:calc(100dvh - 52px - env(safe-area-inset-top));min-height:0;border:0}
+ .hud{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:12px;gap:10px}
+ .hud label{font-size:8px;letter-spacing:1px}.hud strong{font-size:18px}.hud small{font-size:10px}
+ .hud .wallet{padding:4px 8px;gap:5px}.wallet img{width:21px;height:26px}
+ .hud button{min-height:44px;min-width:44px;padding:8px;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
+ .hud .mobile-only{display:flex}.hud button svg{width:21px;height:21px}
+ #effects{top:65px;left:12px;right:12px;max-width:none;font-size:9px;line-height:1.5;text-align:center;pointer-events:none}
+ .location{left:50%;bottom:calc(7px + env(safe-area-inset-bottom));transform:translateX(-50%);padding:5px 7px;white-space:nowrap;font-size:7px;pointer-events:none}.location span{margin-left:8px}
+ .stick-wrap{display:block;position:absolute;left:max(16px,env(safe-area-inset-left));bottom:calc(23px + env(safe-area-inset-bottom));z-index:2;user-select:none;-webkit-user-select:none}
+ #joystick{width:132px;height:132px;border-radius:50%;position:relative;border:2px solid #b8d39180;background:radial-gradient(circle,#1a2f22a8 0 48%,#16251eb8 49%);box-shadow:inset 0 0 0 14px #bcdca00c,0 4px 24px #0004;touch-action:none}
+ #joystick::before,#joystick::after{content:'';position:absolute;background:#d7f7b122;pointer-events:none}#joystick::before{width:1px;height:100%;left:50%}#joystick::after{height:1px;width:100%;top:50%}
+ #stickThumb{position:absolute;left:50%;top:50%;width:52px;height:52px;transform:translate(-50%,-50%);border-radius:50%;border:2px solid #daffa4;background:linear-gradient(140deg,#b6db82eb,#5a8053ee);box-shadow:0 4px 14px #0007;pointer-events:none}
+ #joystick[data-active="true"]{border-color:#d4ff8a}#joystick[data-active="true"] #stickThumb{background:#ceff62}
+ .stick-caption{text-align:center;display:block;font-size:8px;letter-spacing:2px;color:#d8e9cd;margin-top:8px;pointer-events:none}
+ .touch{display:block;position:absolute;right:max(17px,env(safe-area-inset-right));bottom:calc(24px + env(safe-area-inset-bottom));max-width:none;z-index:2}
+ #touchHook{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;padding:8px;border:2px solid #ceff62;background:#203323e8;color:#e9ffcb;touch-action:manipulation;box-shadow:0 5px 20px #0005;font-size:11px;font-weight:600}
+ #touchHook b{font-size:27px;line-height:1}#touchHook small{font-size:8px;font-weight:400}#touchHook:disabled{border-color:#90a77c;color:#bac8b1;background:#27332adb}
+ .abilities{left:auto;right:max(13px,env(safe-area-inset-right));bottom:calc(116px + env(safe-area-inset-bottom));display:flex;flex-direction:row;gap:8px}
+ .abilities button{width:58px;min-height:64px;padding:6px 4px;display:flex;flex-direction:column;gap:3px;border-radius:12px;background:#16261ee8;border-color:#8ea579;touch-action:manipulation}
+ .abilities kbd{display:none}.abilities span{font-size:0;letter-spacing:0}.abilities span::before{content:attr(data-short);display:block;font-size:9px;line-height:1.2}
+ .abilities strong{font-size:16px;margin-top:5px}.abilities small{font-size:7px;align-self:center}.abilities button[data-active="true"]{border-color:#ceff62;box-shadow:0 0 15px #ceff6233}
+ body:not([data-game-state="running"]) .stick-wrap,body:not([data-game-state="running"]) .touch,body:not([data-game-state="running"]) .abilities{visibility:hidden}
+ .overlay{padding:26px 22px;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;align-items:center;background:linear-gradient(90deg,#0b1714ed,#0d1914a8)}
+ .intro{width:100%;max-width:560px;margin:auto}.intro .eyebrow{font-size:9px;line-height:1.5}.intro h2{font-size:clamp(29px,8vw,46px);margin:14px 0}.intro>p:not(.eyebrow){font-size:12px;line-height:1.7}
+ .primary{min-width:0;width:100%;min-height:50px;margin-top:22px;font-size:13px;padding:14px 18px}#shopOpen{min-height:44px;padding:12px 0;font-size:12px}
+ .intro small{font-size:10px;line-height:1.6;max-width:none;margin-top:12px}
+ #shop{padding:12px;align-items:flex-start}.shopbox{max-height:100%;overflow-y:auto;padding:16px;margin:auto}.shophead h2{font-size:18px;line-height:1.3}.shophead button{min-height:44px;min-width:70px;font-size:10px}.shopbox>p{font-size:11px;line-height:1.6}
+ .products{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.products button{min-height:124px;padding:12px;border-radius:8px;touch-action:manipulation}.products b{font-size:24px}.products h3{font-size:13px;line-height:1.3;margin:5px 0}.products p{font-size:10px;line-height:1.5;margin:6px 0;min-height:30px}.products strong{font-size:10px}
+ #toast{bottom:calc(200px + env(safe-area-inset-bottom));font-size:11px;padding:10px;pointer-events:none}
+}
+@media(max-width:359px){.hud{gap:7px}.hud .wallet{padding:4px 6px}.hud strong{font-size:16px}.stick-wrap{left:12px}#joystick{width:110px;height:110px}#stickThumb{width:46px;height:46px}.abilities button{width:54px}.abilities{gap:8px;right:12px}.touch{right:15px}}
+@media (max-height:500px) and (max-width:1000px),(max-height:500px) and (pointer:coarse){
+ header{display:none}.arena{height:100dvh}.hud{top:max(8px,env(safe-area-inset-top));left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right))}#effects{top:56px}
+ #joystick{width:112px;height:112px}#stickThumb{width:46px;height:46px}.stick-wrap{bottom:calc(16px + env(safe-area-inset-bottom))}.abilities{bottom:calc(104px + env(safe-area-inset-bottom))}.touch{bottom:calc(16px + env(safe-area-inset-bottom))}#touchHook{width:68px;height:68px}
+ .overlay{padding:16px 24px}.intro{display:grid;grid-template-columns:minmax(0,1fr) 230px;column-gap:24px;max-width:850px}.intro .eyebrow{grid-column:1;margin:0}.intro h2{grid-column:1;grid-row:2 / span 2;font-size:28px;margin:10px 0}#modalText{grid-column:1;grid-row:4;font-size:11px;margin:4px 0;line-height:1.5}.primary{grid-column:2;grid-row:2;margin:0}#shopOpen{grid-column:2;grid-row:3}#hint{grid-column:2;grid-row:4;margin:0;font-size:9px;line-height:1.4}.shopbox{max-width:760px}.shophead h2{margin:6px 0}.products{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:10px}.products button{min-height:108px}#toast{bottom:45%;max-width:60%}
+}
