@@ -12,6 +12,21 @@ saved.skillSlots=saved.skillSlots.map((id,i,a)=>id&&a.indexOf(id)===i?id:null);
 const combat=window.createCombat(),slotKeys=['Z','X','C','V'];
 let state='menu',panel='menu',panelStack=[],elapsed=0,stage=1,lap=1,levelTime=0,runCoins=0,grace=3,spawnTimer=0,coinTimer=0,speed=0,invis=0,shield=0,cooldown=0,grapple=null,agents=[],coins=[],keys={},p={x:-480,y:460},velocity={x:0,y:0},last=0,previewSkin=saved.skin,hookPointer=null,hoveredHookTarget=null;
 function persist(){try{localStorage.setItem('mellrun-v1',JSON.stringify(saved))}catch{}}
+// This fixed gift is claimed once in the browser where the link is opened.
+function claimBrowserGift(){
+ const giftId='opera-gx-10000-6c318df4';
+ if(window.location?.hash!=='#gift='+giftId)return;
+ const claimed=Array.isArray(saved.claimedGifts)?saved.claimedGifts:[];
+ let message;
+ if(claimed.includes(giftId))message='Подарок уже получен в этом браузере.';
+ else{
+  const before=saved.coins,previous=saved.claimedGifts;saved.coins+=10000;saved.claimedGifts=[...claimed,giftId];
+  try{localStorage.setItem('mellrun-v1',JSON.stringify(saved));message='Начислено 10 000 птенцов!'}
+  catch{saved.coins=before;saved.claimedGifts=previous;toast('Не удалось сохранить подарок. Разреши сохранение данных сайта и открой ссылку ещё раз.');return}
+ }
+ openPanel('shop');$('shopMsg').textContent=message+' Баланс: '+saved.coins+' птенцов.';toast(message);
+ window.history?.replaceState(null,'',window.location.pathname+window.location.search);
+}
 const music=window.createMusicManager({element:$('bgMusic'),enabled:saved.musicEnabled,volume:saved.musicVolume,onChange:({enabled,volume})=>{saved.musicEnabled=enabled;saved.musicVolume=volume;persist();updateMusicUi()}});
 function updateMusicUi(){$('musicEnabled').checked=music.enabled;$('musicVolume').value=Math.round(music.volume*100);$('volumeValue').textContent=Math.round(music.volume*100)+'%'}
 $('musicEnabled').onchange=e=>music.setEnabled(e.target.checked);$('musicVolume').oninput=e=>music.setVolume(Number(e.target.value)/100);updateMusicUi();
@@ -93,7 +108,7 @@ function update(dt){if(state!=='running')return;elapsed+=dt;levelTime+=dt;grace-
  for(const a of agents){let vx=p.x-a.x,vy=p.y-a.y,d=Math.max(.001,Math.hypot(vx,vy)),v=90+stage*3+Math.min(lap-1,4)*4;if(a.fear>0){vx=-vx;vy=-vy;v*=.85}else if(invis>0){vx=Math.cos(elapsed*.45+a.phase);vy=Math.sin(elapsed*.45+a.phase);d=1}else if(d<30||a.attackWindup>0)v=0;const ox=a.x,oy=a.y;move(a,vx/d*v*dt,vy/d*v*dt,10);if(v>0&&Math.hypot(a.x-ox,a.y-oy)<v*dt*.2)move(a,-vy/d*v*dt,vx/d*v*dt,10);combat.attack(a,dt,p,invis>0||shield>0||grace>0||grapple?.phase==='pull');if(combat.dead){finishRun();break}} ui();
 }
 function adaptTouch(){resetInput();$('hint').textContent=touchLayout.matches?'Стик — движение. Навыки — четыре окна снизу. Хук и усиления справа.':'Z / X / C / V — навыки · WASD / стрелки — движение · Пробел — хук · Q — щит · R — невидимость · Shift — скорость · Esc — пауза';window.resize3D?.()}
-touchLayout.addEventListener('change',adaptTouch);window.addEventListener('resize',()=>window.resize3D?.());adaptTouch();syncPanels();
+touchLayout.addEventListener('change',adaptTouch);window.addEventListener('resize',()=>window.resize3D?.());adaptTouch();syncPanels();claimBrowserGift();
 const healthMarkers=[];
 function healthMarker(i,kind){if(!healthMarkers[i]){const b=document.createElement('div');b.className='world-health '+kind+'-bar';const text=document.createElement('strong'),track=document.createElement('div'),fill=document.createElement('i');track.className='hp-track';track.appendChild(fill);b.appendChild(text);b.appendChild(track);$('worldHealth').appendChild(b);healthMarkers[i]={b,text,fill}}return healthMarkers[i]}
 function updateHealthMarkers(){const list=[{...p,hp:combat.hp,height:saved.skin==='massa'?155:saved.skin==='artur'?147:112},...agents.map(a=>({...a,height:126}))];for(let i=0;i<list.length;i++){const a=list[i],m=healthMarker(i,i===0?'hero':'agent'),pos=window.project3D(a.x,a.y,a.height),x=pos.x*canvas.clientWidth/canvas.width,y=pos.y*canvas.clientHeight/canvas.height;m.b.style.display=pos.visible!==false&&x>-60&&x<canvas.clientWidth+60&&y>0&&y<canvas.clientHeight?'block':'none';m.b.style.left=x+'px';m.b.style.top=y+'px';m.text.textContent=a.hp+' / 100';m.fill.style.width=a.hp+'%';m.b.setAttribute('aria-label',(i===0?'Герой':'Интерпол')+': '+a.hp+' HP')}for(let i=list.length;i<healthMarkers.length;i++)healthMarkers[i].b.style.display='none'}
